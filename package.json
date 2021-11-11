@@ -1,0 +1,10 @@
+{
+  "name": "shiren-calendar",
+  "version": "1.0.0",
+  "description": "实仁日历",
+  "main": "index.js",
+  "repository": "https://www.10in.com",
+  "author": "qingliu <soonio@qq.com>",
+  "license": "MIT",
+  "type": "module"
+}
