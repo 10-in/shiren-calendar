@@ -705,14 +705,14 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     plate.basic.z = info.z
     const jd = info.jd;
 
-    const JQs = ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒', '立春', '惊蛰', '清明'] // 12节气，不包含另外12中气
+    const JQs = ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪'] // 12节气，不包含另外12中气
     plate['birth'] = {
         front: {
-            name: JQs[info.jqi],
+            name: JQs[info.jqi % 12],
             time: datetime2string(julian2solar(info.jq[0]))
         },
         back: {
-            name: JQs[info.jqi + 1],
+            name: JQs[(info.jqi + 1) % 12],
             time: datetime2string(julian2solar(info.jq[1]))
         }
     }
