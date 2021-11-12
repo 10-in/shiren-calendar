@@ -609,107 +609,123 @@ export function lunarMonthHasDays(year, month, isLeap) {
     }
 }
 
+/**
+ * 获取干支信息
+ * @param year
+ * @param month
+ * @param day
+ * @param hour
+ * @param minute
+ * @param second
+ * @param zwz 区分早晚子时
+ * @returns {{}|{jqi: number, g: *[], jq: *[], z: *[], jd: *[]}}
+ */
 export function gzi(year, month, day, hour, minute = 0, second = 0, zwz = false) {
-    const jd = solar2julian(year, month, day, hour, minute, Math.max(1, second));
-    if (!jd) return [];
-    let ix = 0;
+
+    const info = {
+        g: [], // 天干
+        z: [], // 地址
+        jd: [], // 对应的儒略日
+        jq: [], // 日期前后节气的儒略日
+        jqi: 0, // 对应的节气索引
+    }
+
+    info.jd = solar2julian(year, month, day, hour, minute, Math.max(1, second));
+    if (!info.jd) return {};
 
     let jq = pureJQSinceSpring(year);
-    if (jd < jq[1]) {
+    if (info.jd < jq[1]) {
         year = year - 1;
         jq = pureJQSinceSpring(year);
     }
 
-    const tg = [];
-    const dz = [];
     const yearGZ = ((year + 4712 + 24) % 60 + 60) % 60;
-    tg[0] = yearGZ % 10; //年干
-    dz[0] = yearGZ % 12; //年支
+    info.g[0] = yearGZ % 10; //年干
+    info.z[0] = yearGZ % 12; //年支
 
     for (let j = 0; j <= 15; j++) {
-        if (jq[j] >= jd) {
-            ix = j - 1;
+        if (jq[j] >= info.jd) {
+            info.jqi = j - 1;
             break;
         }
     }
 
-    const monthGZ = (((year + 4712) * 12 + (ix - 1) + 60) % 60 + 50) % 60;
-    tg[1] = monthGZ % 10; //月干
-    dz[1] = monthGZ % 12; //月支
+    info.jq = [jq[info.jqi], jq[info.jqi + 1]]
 
-    const jda = jd + 0.5;
+    const monthGZ = (((year + 4712) * 12 + (info.jqi - 1) + 60) % 60 + 50) % 60;
+    info.g[1] = monthGZ % 10; //月干
+    info.z[1] = monthGZ % 12; //月支
+
+    const jda = info.jd + 0.5;
     const dayJD = Math.floor(jda) + (((jda - Math.floor(jda)) * 86400) + 3600) / 86400;
     const dgz = (Math.floor(dayJD + 49) % 60 + 60) % 60;
-    tg[2] = dgz % 10; //日干
-    dz[2] = dgz % 12; //日支
+    info.g[2] = dgz % 10; //日干
+    info.z[2] = dgz % 12; //日支
     if (zwz && (hour >= 23)) { //区分早晚子时,日柱前移一柱
-        tg[2] = (tg[2] + 10 - 1) % 10;
-        dz[2] = (dz[2] + 12 - 1) % 12;
+        info.g[2] = (info.g[2] + 10 - 1) % 10;
+        info.z[2] = (info.z[2] + 12 - 1) % 12;
     }
 
     const dh = dayJD * 12;
     const hgz = (Math.floor(dh + 48) % 60 + 60) % 60;
-    tg[3] = hgz % 10; //时干
-    dz[3] = hgz % 12; //时支
+    info.g[3] = hgz % 10; //时干
+    info.z[3] = hgz % 12; //时支
 
-    return [tg, dz, jd, jq, ix];
+    return info;
 }
 
 /**
  * 根据公历年月日排盘
- * @param male 0男1女
+ * @param male true男false女
  * @param year
  * @param month
  * @param day
- * @param hour 时间(0-23)
- * @param minute 分钟数(0-59),在跨节的时辰上会需要,有的排盘忽略了跨节
- * @param second 秒数(0-59)
- * @return {}
+ * @param hour
+ * @param minute
+ * @param second
+ * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}}}
  */
 export const plate = function (male, year, month, day, hour, minute = 0, second = 0) {
     let i, span;
     const plate = {
-        basic: {
+        basic: { // 四柱天干地址
             g: [],
             z: [],
         },
-        lucky: {
-            desc: '',
+        lucky: { // 大运天干地址
+            desc: '', // 起运日期描述
             g: [],
             z: [],
-            datetime: []
+            datetime: [] // 每个大运对应的起运具体时间
         }
     };
 
-    const gz = gzi(year, month, day, hour, minute, second);
-    plate.basic.g = gz[0]
-    plate.basic.z = gz[1]
-    const jd = gz[2];
-    const jq = gz[3];
-    const ix = gz[4];
+    const info = gzi(year, month, day, hour, minute, second);
+    plate.basic.g = info.g
+    plate.basic.z = info.z
+    const jd = info.jd;
 
-
-    const NAMEs = ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒', '立春', '惊蛰', '清明']
+    const JQs = ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒', '立春', '惊蛰', '清明'] // 12节气，不包含另外12中气
     plate['birth'] = {
         front: {
-            name: NAMEs[ix],
-            time: datetime2string(julian2solar(jq[ix]))
+            name: JQs[info.jqi],
+            time: datetime2string(julian2solar(info.jq[0]))
         },
         back: {
-            name: NAMEs[ix + 1],
-            time: datetime2string(julian2solar(jq[ix + 1]))
+            name: JQs[info.jqi + 1],
+            time: datetime2string(julian2solar(info.jq[1]))
         }
     }
 
     const pn = plate.basic.g[0] % 2;
     if ((male && pn === 0) || (!male && pn === 1)) { //起大运时间,阳男阴女顺排
-        span = jq[ix + 1] - jd; //往后数一个节,计算时间跨度
+        span = info.jq[1] - jd; //往后数一个节,计算时间跨度
         for (i = 1; i <= 12; i++) { //大运干支
             plate.lucky.g.push((plate.basic.g[1] + i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + i) % 12);
         }
     } else { // 阴男阳女逆排,往前数一个节
-        span = jd - jq[ix];
+        span = jd - info.jq[0];
         for (i = 1; i <= 12; i++) { //确保是正数
             plate.lucky.g.push((plate.basic.g[1] + 20 - i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + 24 - i) % 12);
