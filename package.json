@@ -1,10 +1,22 @@
 {
   "name": "shiren-calendar",
-  "version": "1.0.0",
+  "version": "0.1",
+  "homepage": "https://10in.com",
   "description": "实仁日历",
+  "keywords": ["八字", "排盘", "公历", "农历", "转换"],
   "main": "index.js",
-  "repository": "https://github.com/10in-tech/shiren-calendar",
-  "author": "qingliu <soonio@qq.com>",
+  "repository": {
+    "url": "https://github.com/10in-tech/shiren-calendar",
+    "type": "git"
+  },
+  "author": "shiyin <developer@10in.com>",
+  "contributors": [
+    "soonio <soonio@qq.com> (https://github.com/soonio)"
+  ],
+  "bugs": {
+    "email": "developer@10in.com",
+    "url": "https://github.com/10in-tech/shiren-calendar/issues"
+  },
   "type": "module",
   "files": [
     "index.js"
