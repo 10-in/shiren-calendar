@@ -1,9 +1,15 @@
 {
   "name": "shiren-calendar",
-  "version": "0.1",
+  "version": "0.1.1",
   "homepage": "https://10in.com",
   "description": "实仁日历",
-  "keywords": ["八字", "排盘", "公历", "农历", "转换"],
+  "keywords": [
+    "八字",
+    "排盘",
+    "公历",
+    "农历",
+    "转换"
+  ],
   "main": "index.js",
   "repository": {
     "url": "https://github.com/10in-tech/shiren-calendar",
