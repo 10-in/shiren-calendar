@@ -637,10 +637,17 @@ export function lunarMonthHasDays(year, month, isLeap) {
 export function yearJieQi(year) {
     const jds = pureJQSinceSpring(year)
     const dates = []
-    for (let i = 1; i < 13; i++) {
+    for (let i = 1; i < 14; i++) {
         dates.push(julian2solar(jds[i]))
     }
-    return dates
+    return dates.map((d, i, all) => {
+        return {
+            year: d[0],
+            month: d[1],
+            day: d[2],
+            dd: i < 12 ? all[i+1][2] : null
+        }
+    }).slice(0, 12)
 }
 
 /**
