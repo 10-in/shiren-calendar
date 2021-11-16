@@ -382,14 +382,14 @@ function SMSinceWinterSolstice(year, wJD) {
 
 /**
  * 求出以某年立春點開始的節(注意:为了方便计算起运数,此处第0位为上一年的小寒)
- * @param yy
+ * @param year
  * @return array jq[(2*k+21)%24]
  */
-function pureJQSinceSpring(yy) {
+function pureJQSinceSpring(year) {
     let k;
     const jdpjq = [];
 
-    let dj = adjustedJQ(yy - 1, 19, 23); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
+    let dj = adjustedJQ(year - 1, 19, 23); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
     for (k in dj) {
         if (k < 19 || k > 23 || k % 2 === 0) {
             continue;
@@ -397,7 +397,7 @@ function pureJQSinceSpring(yy) {
         jdpjq.push(dj[k]); //19小寒;20大寒;21立春;22雨水;23惊蛰
     }
 
-    dj = adjustedJQ(yy, 0, 25); //求出指定年節氣之JD值,從春分開始,到大寒,多取两个确保覆盖一个公历年,也方便计算起运数
+    dj = adjustedJQ(year, 0, 25); //求出指定年節氣之JD值,從春分開始,到大寒,多取两个确保覆盖一个公历年,也方便计算起运数
     for (k in dj) {
         if (k % 2 === 0) {
             continue;
@@ -494,7 +494,7 @@ function ZQAndSMandLunarMonthCode(year) {
     return [jd4zq, jd4sm, mc];
 }
 
-// 公里转农历
+// 公历转农历
 export function solar2lunar(year, month, day) {
     if (!dateIsOk(year, month, day)) return undefined;
 
@@ -528,6 +528,14 @@ export function solar2lunar(year, month, day) {
     return [year, month, day, isLeap];
 }
 
+/**
+ * 农历转公历
+ * @param year
+ * @param month
+ * @param day
+ * @param isLeap
+ * @returns {boolean|boolean|*}
+ */
 export function lunar2solar(year, month, day, isLeap=false) {
     if (year < -1000 || 3000 < year || month < 1 || 12 < month || day < 1 || 30 < day) {
         return false;
@@ -566,7 +574,12 @@ export function lunar2solar(year, month, day, isLeap=false) {
     return jd === null ? false : julian2solar(jd).slice(0, 3);
 }
 
-// 获取公历某个月有多少天
+/**
+ * 获取公历某个月有多少天
+ * @param year
+ * @param month
+ * @returns {number}
+ */
 export function solarMonthHasDays(year, month) {
     if (year < -1000 || year > 3000 || month < 1 || month > 12) {
         return 0;
@@ -577,6 +590,13 @@ export function solarMonthHasDays(year, month) {
     return 30 + ((Math.abs(month - 7.5) + 0.5) % 2) - (month === 2) * (2 + ndf);
 }
 
+/**
+ * 获取农历某个月有多少天
+ * @param year
+ * @param month
+ * @param isLeap
+ * @returns {number|*}
+ */
 export function lunarMonthHasDays(year, month, isLeap) {
     if (year < -1000 || year > 3000 || month < 1 || month > 12) {
         return 0;
@@ -607,6 +627,20 @@ export function lunarMonthHasDays(year, month, isLeap) {
     } else {
         return  nofd[month - 1 + (leap !== 0 && month > leap)]
     }
+}
+
+/**
+ * 获取一年的12个节气['立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪', '小寒']对应的公历日期
+ * @param year
+ * @returns {*[]}
+ */
+export function yearJieQi(year) {
+    const jds = pureJQSinceSpring(year)
+    const dates = []
+    for (let i = 1; i < 13; i++) {
+        dates.push(julian2solar(jds[i]))
+    }
+    return dates
 }
 
 /**
