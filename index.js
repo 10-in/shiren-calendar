@@ -645,6 +645,9 @@ export function yearJieQi(year) {
             year: d[0],
             month: d[1],
             day: d[2],
+            hour: d[3],
+            minute: d[4],
+            second: d[5],
             dd: i < 12 ? all[i+1][2] : null
         }
     }).slice(0, 12)
@@ -724,9 +727,10 @@ export function gzi(year, month, day, hour, minute = 0, second = 0, zwz = false)
  * @param hour
  * @param minute
  * @param second
+ * @param zwz 区分早晚子时
  * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}}}
  */
-export const plate = function (male, year, month, day, hour, minute = 0, second = 0) {
+export const plate = function (male, year, month, day, hour, minute = 0, second = 0, zwz=false) {
     let i, span;
     const plate = {
         basic: { // 四柱天干地址
@@ -741,7 +745,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
         }
     };
 
-    const info = gzi(year, month, day, hour, minute, second);
+    const info = gzi(year, month, day, hour, minute, second, zw);
     plate.basic.g = info.g
     plate.basic.z = info.z
     const jd = info.jd;
