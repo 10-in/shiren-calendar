@@ -404,7 +404,6 @@ function pureJQSinceSpring(year) {
         }
         jdpjq.push(dj[k]);
     }
-
     return jdpjq;
 }
 
@@ -637,10 +636,20 @@ export function lunarMonthHasDays(year, month, isLeap) {
 export function yearJieQi(year) {
     const jds = pureJQSinceSpring(year)
     const dates = []
-    for (let i = 1; i < 13; i++) {
+    for (let i = 1; i < 14; i++) {
         dates.push(julian2solar(jds[i]))
     }
-    return dates
+    return dates.map((d, i, all) => {
+        return {
+            year: d[0],
+            month: d[1],
+            day: d[2],
+            hour: d[3],
+            minute: d[4],
+            second: d[5],
+            dd: i < 12 ? all[i+1][2] : null
+        }
+    }).slice(0, 12)
 }
 
 /**
@@ -717,9 +726,10 @@ export function gzi(year, month, day, hour, minute = 0, second = 0, zwz = false)
  * @param hour
  * @param minute
  * @param second
- * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}}}
+ * @param zwz 区分早晚子时
+ * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}, shiren: {datetime: string, year: number}}}
  */
-export const plate = function (male, year, month, day, hour, minute = 0, second = 0) {
+export const plate = function (male, year, month, day, hour, minute = 0, second = 0, zwz=false) {
     let i, span;
     const plate = {
         basic: { // 四柱天干地址
@@ -731,13 +741,16 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
             g: [],
             z: [],
             datetime: [] // 每个大运对应的起运具体时间
+        },
+        shiren: { // 实仁排盘的起运时间
+            datetime: '',
+            year: 0,
         }
     };
 
-    const info = gzi(year, month, day, hour, minute, second);
+    const info = gzi(year, month, day, hour, minute, second, zwz);
     plate.basic.g = info.g
     plate.basic.z = info.z
-    const jd = info.jd;
 
     const JQs = ['小寒', '立春', '惊蛰', '清明', '立夏', '芒种', '小暑', '立秋', '白露', '寒露', '立冬', '大雪'] // 12节气，不包含另外12中气
     plate['birth'] = {
@@ -753,13 +766,13 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     const pn = plate.basic.g[0] % 2;
     if ((male && pn === 0) || (!male && pn === 1)) { //起大运时间,阳男阴女顺排
-        span = info.jq[1] - jd; //往后数一个节,计算时间跨度
+        span = info.jq[1] - info.jd; //往后数一个节,计算时间跨度
         for (i = 1; i <= 12; i++) { //大运干支
             plate.lucky.g.push((plate.basic.g[1] + i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + i) % 12);
         }
     } else { // 阴男阳女逆排,往前数一个节
-        span = jd - info.jq[0];
+        span = info.jd - info.jq[0];
         for (i = 1; i <= 12; i++) { //确保是正数
             plate.lucky.g.push((plate.basic.g[1] + 20 - i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + 24 - i) % 12);
@@ -769,10 +782,15 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     const days = Math.floor(span * 4 * 30);
     const y = Math.floor(days / 360);
     const m = Math.floor(days % 360 / 30);
-    let d = Math.floor(days % 360 % 30);
+    const d = Math.floor(days % 360 % 30);
     plate.lucky.desc = y + "年" + m + "月" + d + "天起运";
 
-    const startJDTime = jd + span * 120;
+    // 计算实仁起运时间
+    plate.shiren.year = year + parseInt((span / 3).toFixed())
+    let luckyYear = pureJQSinceSpring(plate.shiren.year)
+    plate.shiren.datetime = datetime2string(julian2solar(luckyYear[1]))
+
+    const startJDTime = info.jd + span * 120;
 
     for (i = 0; i < 12; i++) {
         plate.lucky.datetime.push(datetime2string(julian2solar(startJDTime + i * 10 * 360)));
@@ -780,6 +798,11 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     return plate;
 }
 
+/**
+ * 日期时间数组转为字符串
+ * @param data
+ * @returns {string}
+ */
 function datetime2string(data) {
     return data.slice(0, 3).map((v) => { return `${v}`.padStart(2, '0') }).join('-') + ' ' + data.slice(3, 6).map((v) => { return `${v}`.padStart(2, '0') }).join(':')
 }
