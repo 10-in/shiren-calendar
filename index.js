@@ -745,7 +745,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
         }
     };
 
-    const info = gzi(year, month, day, hour, minute, second, zw);
+    const info = gzi(year, month, day, hour, minute, second, zwz);
     plate.basic.g = info.g
     plate.basic.z = info.z
     const jd = info.jd;
