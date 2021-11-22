@@ -421,7 +421,7 @@ function adjustedJQ(year, start, end) {
     const jq = [];
 
     const Jd4JQ = meanJQJD(year);
-    for (const k in Jd4JQ) {
+    for (let k = 0; k < Jd4JQ.length; k++) {
         if (k < start || k > end) {
             continue;
         }
@@ -796,6 +796,67 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
         plate.lucky.datetime.push(datetime2string(julian2solar(startJDTime + i * 10 * 360)));
     }
     return plate;
+}
+
+/**
+ * 根据八字干支查找对应的公历日期
+ * @param yearColumn 年柱的60甲子年索引
+ * @param monthColumn 月柱的60甲子年索引
+ * @param dayColumn 日柱的60甲子年索引
+ * @param hourColumn 时柱的60甲子年索引
+ * @param zzs 早(true)/晚(false)子时，时柱为X子才会生效
+ * @param startYear
+ * @param mx
+ */
+export function gz2datetime(yearColumn, monthColumn, dayColumn, hourColumn, zzs = true, startYear = 1500, mx = 17) {
+    const CycleIndex = (startYear + 56) % 60 // 求出开始那年对应60甲子年的索引
+    const diff = (yearColumn + 60 - CycleIndex) % 60 // 计算输入年柱与1500对应年柱的差值,yearColumn+60把输入的年柱切换到下一个周期，以保证比1500年的甲子年索引大，再通过取余60回到60甲子年内
+
+    let sii = (monthColumn + 10) % 12 // SolarItermIndex 因为一年12个月与12地支一一对应(索引上偏差2，所以使用12-2=10进行矫正)，12个地支跟12节气对应
+
+    const datetime = []
+
+    for (let m = 0; m <= mx - 1; m++) {
+        let sis = pureJQSinceSpring(startYear + diff + 60 * m).slice(1) // 因为需要从立春开始算，去掉第一个去年的小寒
+        let headSi = sis[sii] // 月头对应的节气
+        let footSi = sis[sii + 1] // 月尾对应的节气
+        let headCycleIndex = (Math.floor(headSi) + 49) % 60 // 儒略日历时间0日为癸丑日,六十甲子代码为49
+        let dayDiff = (dayColumn + 60 - headCycleIndex) % 60 // 输入的日期到月头间隔的日子(一般不超过30，因为一个月30天，只能循环60甲子中的一半)
+        let theDayJd = Math.floor(headSi + dayDiff) // 计算出输入四柱对应的日期
+        let theHour = hourColumn % 12 // 计算出时支
+
+        let id, fd
+
+        if (theHour === 0) {
+            if (zzs) { // 早
+                id = theDayJd + (theHour * 2 - 12) / 24
+                fd = theDayJd + (theHour * 2 - 11) / 24
+            } else { // 晚
+                id = theDayJd + (theHour * 2 + 10) / 24
+                fd = theDayJd + (theHour * 2 + 12) / 24 - 0.00000001
+            }
+        } else {
+            id = theDayJd + (theHour * 2 - 13) / 24
+            fd = theDayJd + (theHour * 2 - 11) / 24
+        }
+        if (fd < headSi || footSi < id) continue // 此八字在此60年中不存在
+
+        let startJd, endJd
+        if (headSi < id && fd < footSi) { // 没有跨节
+            startJd = id
+            endJd = fd
+        }
+        if (id < headSi && headSi < fd) { // 同一个时辰跨越了节:在节气月头,只包含时辰后段
+            startJd = headSi
+            endJd = fd
+        }
+        if (id < footSi && footSi < fd) { // 同一个时辰跨越了节:在节气月尾,只包含时辰前段
+            startJd = id
+            endJd = footSi
+        }
+        datetime.push([julian2solar(startJd), julian2solar(endJd)]) // 儒略日历时间转成公历时间
+    }
+    return datetime
 }
 
 /**
