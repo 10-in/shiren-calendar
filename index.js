@@ -789,7 +789,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     // 计算实仁起运时间
     plate.shiren.year = year + parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
-    lunarDate[0] = plate.shiren.year // 出生日期农历年平移到起运年
+    lunarDate[0] = lunarDate[0] + parseInt((span / 3).toFixed()) // 出生日期农历年平移到起运年
     let shirenLuckyDay = lunar2solar(...lunarDate)
     if (shirenLuckyDay === false) { // 如果平移后的日期不存在
         if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
