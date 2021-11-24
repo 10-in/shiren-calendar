@@ -727,7 +727,7 @@ export function gzi(year, month, day, hour, minute = 0, second = 0, zwz = false)
  * @param minute
  * @param second
  * @param zwz 区分早晚子时
- * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}, shiren: {datetime: string, year: number}}}
+ * @returns {{lucky: {datetime: *[], g: *[], z: *[], desc: string}, basic: {g: *[], z: *[]}, shiren: {datetime: string, year: number, rang: *[]}}}
  */
 export const plate = function (male, year, month, day, hour, minute = 0, second = 0, zwz=false) {
     let i, span;
@@ -745,6 +745,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
         shiren: { // 实仁排盘的起运时间
             datetime: '',
             year: 0,
+            rang: [], // 每个大运对应的的具体起运日期
         }
     };
 
@@ -785,10 +786,35 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     const d = Math.floor(days % 360 % 30);
     plate.lucky.desc = y + "年" + m + "月" + d + "天起运";
 
+    const startJDTime = info.jd + span * 120;
+    for (i = 0; i < 12; i++) {
+        plate.lucky.datetime.push(datetime2string(julian2solar(startJDTime + i * 10 * 360)));
+    }
+
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
+    const startAge = parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
-    lunarDate[0] = lunarDate[0] + parseInt((span / 3).toFixed()) // 出生日期农历年平移到起运年
+    lunarDate[0] += startAge // 出生日期农历年平移到起运年
+
+    let shirenLuckyDay = offsetLunar2solar(lunarDate)
+    plate.shiren.datetime =  datetime2string(shirenLuckyDay).slice(0, 10)
+    plate.shiren.year = shirenLuckyDay[0]
+
+    for (let i = 0; i < 11; i++) {
+        lunarDate[0] += 10
+        plate.shiren.rang.push(datetime2string(offsetLunar2solar(lunarDate)).trimRight())
+    }
+
+    return plate;
+}
+
+/**
+ * 偏移农历到公历
+ * @param lunarDate
+ * @returns {*}
+ */
+function offsetLunar2solar(lunarDate) {
     let shirenLuckyDay = lunar2solar(...lunarDate)
     if (shirenLuckyDay === false) { // 如果平移后的日期不存在
         if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
@@ -803,15 +829,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
             shirenLuckyDay = lunar2solar(...lunarDate)
         }
     }
-    plate.shiren.datetime =  datetime2string(shirenLuckyDay).slice(0, 10)
-    plate.shiren.year = shirenLuckyDay[0]
-
-    const startJDTime = info.jd + span * 120;
-
-    for (i = 0; i < 12; i++) {
-        plate.lucky.datetime.push(datetime2string(julian2solar(startJDTime + i * 10 * 360)));
-    }
-    return plate;
+    return shirenLuckyDay
 }
 
 /**
