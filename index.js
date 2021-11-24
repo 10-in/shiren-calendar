@@ -661,14 +661,14 @@ export function yearJieQi(year) {
  * @param minute
  * @param second
  * @param zwz 区分早晚子时
- * @returns {{}|{jqi: number, g: *[], jq: *[], z: *[], jd: *[]}}
+ * @returns {{jqi: number, g: *[], jq: *[], z: *[], jd: number}|{}}
  */
 export function gzi(year, month, day, hour, minute = 0, second = 0, zwz = false) {
 
     const info = {
         g: [], // 天干
         z: [], // 地址
-        jd: [], // 对应的儒略日
+        jd: 0, // 对应的儒略日
         jq: [], // 日期前后节气的儒略日
         jqi: 0, // 对应的节气索引
     }
@@ -785,10 +785,26 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     const d = Math.floor(days % 360 % 30);
     plate.lucky.desc = y + "年" + m + "月" + d + "天起运";
 
+    // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
     plate.shiren.year = year + parseInt((span / 3).toFixed())
-    let luckyYear = pureJQSinceSpring(plate.shiren.year)
-    plate.shiren.datetime = datetime2string(julian2solar(luckyYear[1]))
+    const lunarDate = solar2lunar(year, month, day)
+    lunarDate[0] = plate.shiren.year // 出生日期农历年平移到起运年
+    let shirenLuckyDay = lunar2solar(...lunarDate)
+    if (shirenLuckyDay === false) { // 如果平移后的日期不存在
+        if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
+            lunarDate[3] = false
+            shirenLuckyDay = lunar2solar(...lunarDate)
+            if (shirenLuckyDay === false) { // 平移后的日期不存在(平移后，大月(30)变小月(29))
+                lunarDate[2] -= 1
+                shirenLuckyDay = lunar2solar(...lunarDate)
+            }
+        } else { // 平移日期不存在，大小月问题
+            lunarDate[2] -= 1
+            shirenLuckyDay = lunar2solar(...lunarDate)
+        }
+    }
+    plate.shiren.datetime =  datetime2string(shirenLuckyDay).slice(0, 10)
 
     const startJDTime = info.jd + span * 120;
 
