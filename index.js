@@ -787,7 +787,6 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
-    plate.shiren.year = year + parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] = lunarDate[0] + parseInt((span / 3).toFixed()) // 出生日期农历年平移到起运年
     let shirenLuckyDay = lunar2solar(...lunarDate)
@@ -805,6 +804,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
         }
     }
     plate.shiren.datetime =  datetime2string(shirenLuckyDay).slice(0, 10)
+    plate.shiren.year = shirenLuckyDay[0]
 
     const startJDTime = info.jd + span * 120;
 
