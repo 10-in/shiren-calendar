@@ -647,6 +647,7 @@ export function yearJieQi(year) {
             hour: d[3],
             minute: d[4],
             second: d[5],
+            dm: i < 12 ? all[i][1] - all[i+1][1] : null, // 当前月 - 下一个月，得出两个月的差值
             dd: i < 12 ? all[i+1][2] : null
         }
     }).slice(0, 12)
