@@ -320,7 +320,7 @@ export function DeltaT(yy, mm) {
  * @returns {*}
  */
 export function spring(year) {
-    return adjustedJQ(year - 1, 19, 19)[19]
+    return adjustedJQ(year - 1, 21, 21)[21]
 }
 
 /**
