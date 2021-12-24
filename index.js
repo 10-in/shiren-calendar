@@ -315,7 +315,7 @@ export function DeltaT(yy, mm) {
 }
 
 /**
- * 获取某年的春分
+ * 获取某年的立春
  * @param year
  * @returns {*}
  */
