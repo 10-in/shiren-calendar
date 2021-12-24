@@ -315,6 +315,15 @@ export function DeltaT(yy, mm) {
 }
 
 /**
+ * 获取某年的春分
+ * @param year
+ * @returns {*}
+ */
+export function spring(year) {
+    return adjustedJQ(year - 1, 19, 19)[19]
+}
+
+/**
  * 计算指定年(公历)的春分点(vernal equinox),但因地球在绕日运行时会因受到其他星球之影响而产生摄动(perturbation),必须将此现象产生的偏移量加入.
  * @return boolean|number 返回儒略日历格林威治时间
  * @param year
