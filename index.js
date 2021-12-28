@@ -803,6 +803,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
+    span = Math.floor(info.jd) - Math.floor(info.jq[0]) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
     const startAge = parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] += startAge // 出生日期农历年平移到起运年
