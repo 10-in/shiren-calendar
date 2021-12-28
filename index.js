@@ -36,7 +36,7 @@ function dateIsOk(year, month, day) {
  * @param minute
  * @param second
  */
-function solar2julian(year, month, day, hour = 0, minute = 0, second = 0) {
+export function solar2julian(year, month, day, hour = 0, minute = 0, second = 0) {
     if (!(dateIsOk(year, month, day) && timeIsOk(hour, minute, second))) {
         return false;
     }
@@ -64,7 +64,7 @@ function solar2julian(year, month, day, hour = 0, minute = 0, second = 0) {
  * @param jd
  * @return array(年,月,日,时,分,秒)
  */
-function julian2solar(jd) {
+export function julian2solar(jd) {
     jd = Number(jd);
     let init, y4h;
     if (jd >= 2299160.5) {
@@ -106,7 +106,7 @@ function julian2solar(jd) {
  * @param jd
  * @return (number|number)[]
  */
-function meanNewMoon(jd) {
+export function meanNewMoon(jd) {
     const kn = Math.floor((jd - 2451550.09765) / synMonth);
     const jdt = 2451550.09765 + kn * synMonth;
     const t = (jdt - 2451545) / 36525;
@@ -120,7 +120,7 @@ function meanNewMoon(jd) {
  * @return *[]
  * @param year
  */
-function meanJQJD(year) {
+export function meanJQJD(year) {
     let i;
     const jd = VE(year);
     if (!jd) { return []; } //该年的春分點
@@ -169,7 +169,7 @@ function meanJQJD(year) {
  * @param k
  * @return number
  */
-function trueNewMoon(k) {
+export function trueNewMoon(k) {
     const jdt = 2451550.09765 + k * synMonth;
     const t = (jdt - 2451545) / 36525;
     const t2 = t * t;
@@ -231,7 +231,7 @@ function trueNewMoon(k) {
  * @param yy
  * @param mm
  */
-function DeltaT(yy, mm) {
+export function DeltaT(yy, mm) {
     let u, t, dt;
     const y = yy + (mm - 0.5) / 12;
 
@@ -315,11 +315,20 @@ function DeltaT(yy, mm) {
 }
 
 /**
+ * 获取某年的立春
+ * @param year
+ * @returns {*}
+ */
+export function spring(year) {
+    return adjustedJQ(year - 1, 21, 21)[21]
+}
+
+/**
  * 计算指定年(公历)的春分点(vernal equinox),但因地球在绕日运行时会因受到其他星球之影响而产生摄动(perturbation),必须将此现象产生的偏移量加入.
  * @return boolean|number 返回儒略日历格林威治时间
  * @param year
  */
-function VE(year) {
+export function VE(year) {
     let m;
     if (year < -8000 && 8001 < year) {
         return false;
@@ -338,7 +347,7 @@ function VE(year) {
  * @return number 返回某时刻(儒略日历)的攝動偏移量
  * @param jd
  */
-function perturbation(jd) {
+export function perturbation(jd) {
     const t = (jd - 2451545) / 36525;
     let s = 0;
     for (let k = 0; k <= 23; k++) {
@@ -355,7 +364,7 @@ function perturbation(jd) {
  * @param wJD 冬至的儒略日历时间
  * @return array
  */
-function SMSinceWinterSolstice(year, wJD) {
+export function SMSinceWinterSolstice(year, wJD) {
     let j, k;
     const tjd = [];
 
@@ -381,15 +390,15 @@ function SMSinceWinterSolstice(year, wJD) {
 }
 
 /**
- * 求出以某年立春點開始的節(注意:为了方便计算起运数,此处第0位为上一年的小寒)
+ * 求出以某年立春点开始的节(注意:为了方便计算起运数,此处第0位为上一年的小寒)
  * @param year
  * @return array jq[(2*k+21)%24]
  */
-function pureJQSinceSpring(year) {
+export function pureJQSinceSpring(year) {
     let k;
     const jdpjq = [];
 
-    let dj = adjustedJQ(year - 1, 19, 23); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
+    let dj = adjustedJQ(year - 1, 19, 23); //求出含指定年立春开始之3個节气JD值,以前一年的年值代入
     for (k in dj) {
         if (k < 19 || k > 23 || k % 2 === 0) {
             continue;
@@ -397,7 +406,7 @@ function pureJQSinceSpring(year) {
         jdpjq.push(dj[k]); //19小寒;20大寒;21立春;22雨水;23惊蛰
     }
 
-    dj = adjustedJQ(year, 0, 25); //求出指定年節氣之JD值,從春分開始,到大寒,多取两个确保覆盖一个公历年,也方便计算起运数
+    dj = adjustedJQ(year, 0, 25); //求出指定年节气之JD值,从春分开始,到大寒,多取两个确保覆盖一个公历年,也方便计算起运数
     for (k in dj) {
         if (k % 2 === 0) {
             continue;
@@ -414,7 +423,7 @@ function pureJQSinceSpring(year) {
  * @param end 0-25
  * @return array
  */
-function adjustedJQ(year, start, end) {
+export function adjustedJQ(year, start, end) {
     if (start < 0 || 25 < start || end < 0 || 25 < end) {
         return [];
     }
@@ -438,7 +447,7 @@ function adjustedJQ(year, start, end) {
  * @param year
  * @return array jq[(2*k+18)%24]
  */
-function ZQSinceWinterSolstice(year) {
+export function ZQSinceWinterSolstice(year) {
     const JD4ZQ = [];
 
     let dj = adjustedJQ(year - 1, 18, 23);
@@ -461,7 +470,7 @@ function ZQSinceWinterSolstice(year) {
  * 以比較日期法求算冬月及其餘各月名稱代碼,包含閏月,冬月為0,臘月為1,正月為2,餘類推.閏月多加0.5
  * @param year
  */
-function ZQAndSMandLunarMonthCode(year) {
+export function ZQAndSMandLunarMonthCode(year) {
     let i;
     const mc = [];
 
@@ -794,6 +803,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
+    span = Math.floor(info.jd) - Math.floor(info.jq[0]) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
     const startAge = parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] += startAge // 出生日期农历年平移到起运年
@@ -815,7 +825,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
  * @param lunarDate
  * @returns {*}
  */
-function offsetLunar2solar(lunarDate) {
+export function offsetLunar2solar(lunarDate) {
     let shirenLuckyDay = lunar2solar(...lunarDate)
     if (shirenLuckyDay === false) { // 如果平移后的日期不存在
         if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
@@ -899,6 +909,6 @@ export function gz2datetime(yearColumn, monthColumn, dayColumn, hourColumn, zzs 
  * @param data
  * @returns {string}
  */
-function datetime2string(data) {
+export function datetime2string(data) {
     return data.slice(0, 3).map((v) => { return `${v}`.padStart(2, '0') }).join('-') + ' ' + data.slice(3, 6).map((v) => { return `${v}`.padStart(2, '0') }).join(':')
 }
