@@ -646,10 +646,11 @@ export function yearJieQi(year) {
     const jds = pureJQSinceSpring(year)
     const dates = []
     for (let i = 1; i < 14; i++) {
-        dates.push(julian2solar(jds[i]))
+        dates.push([...julian2solar(jds[i]), jds[i]])
     }
     return dates.map((d, i, all) => {
         return {
+            jd: d[6],
             year: d[0],
             month: d[1],
             day: d[2],
