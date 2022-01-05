@@ -777,16 +777,16 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     }
 
     const pn = plate.basic.g[0] % 2;
-    let nearBy;
+    let srSpan;
     if ((male && pn === 0) || (!male && pn === 1)) { //起大运时间,阳男阴女顺排
-        nearBy = Math.floor(info.jq[1])
+        srSpan = shirenSpan(info.jd, info.jq[1], true)
         span = info.jq[1] - info.jd; //往后数一个节,计算时间跨度
         for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + i) % 12);
         }
     } else { // 阴男阳女逆排,往前数一个节
-        nearBy = Math.ceil(info.jq[0])
+        srSpan = shirenSpan(info.jd, info.jq[0], false)
         span = info.jd - info.jq[0];
         for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + 20 - i) % 10);
@@ -807,8 +807,8 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
-    span = Math.abs(Math.floor(info.jd) - nearBy) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
-    const startAge = parseInt((span / 3).toFixed())
+    console.log(srSpan)
+    const startAge = parseInt((srSpan / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] += startAge // 出生日期农历年平移到起运年
 
@@ -822,6 +822,20 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     }
 
     return plate;
+}
+
+/**
+ * 实仁计算span
+ * @param birthtimeJD 出生时间儒略日
+ * @param nearbyJD 靠近的节气儒略日
+ * @param forward 顺排还是逆排
+ * @returns {number}
+ */
+function shirenSpan(birthtimeJD, nearbyJD, forward) {
+    const diff = julian2solar(birthtimeJD).slice(0, 3).join(".") === julian2solar(nearbyJD).slice(0, 3).join(".") ? 0 : 1;
+
+    // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天(出生这天和节气不是同一天的时候，才额外加)
+    return Math.abs(Math.floor(birthtimeJD) - (forward ? Math.floor(nearbyJD) : Math.ceil(nearbyJD))) + diff
 }
 
 /**
