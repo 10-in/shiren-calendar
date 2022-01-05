@@ -123,8 +123,8 @@ export function meanNewMoon(jd) {
 export function meanJQJD(year) {
     let i;
     const jd = VE(year);
-    if (!jd) { return []; } //该年的春分點
-    const ty = VE(year + 1) - jd; //该年的回歸年長
+    if (!jd) { return []; } //该年的春分点
+    const ty = VE(year + 1) - jd; //该年的回归年長
 
     const num = 26;
 
@@ -164,8 +164,8 @@ export function meanJQJD(year) {
 }
 
 /**
- * 求出實際新月點
- * 以2000年初的第一個均值新月點為0點求出的均值新月點和其朔望月之序數 k 代入此副程式來求算實際新月點
+ * 求出实际新月点
+ * 以2000年初的第一个均值新月点为0点求出的均值新月点和其朔望月之序数 k 代入此副程式來求算实际新月点
  * @param k
  * @return number
  */
@@ -343,8 +343,8 @@ export function VE(year) {
 }
 
 /**
- * 地球在繞日运行时會因受到其他星球之影響而產生攝動(perturbation)
- * @return number 返回某时刻(儒略日历)的攝動偏移量
+ * 地球在绕日运行时會因受到其他星球之影响而產生摄动(perturbation)
+ * @return number 返回某时刻(儒略日历)的摄动偏移量
  * @param jd
  */
 export function perturbation(jd) {
@@ -398,7 +398,7 @@ export function pureJQSinceSpring(year) {
     let k;
     const jdpjq = [];
 
-    let dj = adjustedJQ(year - 1, 19, 23); //求出含指定年立春开始之3個节气JD值,以前一年的年值代入
+    let dj = adjustedJQ(year - 1, 19, 23); //求出含指定年立春开始之3个节气JD值,以前一年的年值代入
     for (k in dj) {
         if (k < 19 || k > 23 || k % 2 === 0) {
             continue;
@@ -443,7 +443,7 @@ export function adjustedJQ(year, start, end) {
 }
 
 /**
- * 求出自冬至點為起點的連續15個中氣
+ * 求出自冬至点为起点的连续15个中气
  * @param year
  * @return array jq[(2*k+18)%24]
  */
@@ -467,7 +467,7 @@ export function ZQSinceWinterSolstice(year) {
 }
 
 /**
- * 以比較日期法求算冬月及其餘各月名稱代碼,包含閏月,冬月為0,臘月為1,正月為2,餘類推.閏月多加0.5
+ * 以比较日期法求算冬月及其余各月名称代码,包含闰月,冬月为0,腊月为1,正月为2,余类推.闰月多加0.5
  * @param year
  */
 export function ZQAndSMandLunarMonthCode(year) {
@@ -623,7 +623,7 @@ export function lunarMonthHasDays(year, month, isLeap) {
     month = month + 2;
     const nofd = [];
     for (let i = 0; i <= 14; i++) {
-        nofd[i] = Math.floor(jdnm[i + 1] + 0.5) - Math.floor(jdnm[i] + 0.5); //每月天數,加0.5是因JD以正午起算
+        nofd[i] = Math.floor(jdnm[i + 1] + 0.5) - Math.floor(jdnm[i] + 0.5); //每月天数,加0.5是因JD以正午起算
     }
 
     if (isLeap) {
@@ -776,15 +776,18 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     }
 
     const pn = plate.basic.g[0] % 2;
+    let nearBy;
     if ((male && pn === 0) || (!male && pn === 1)) { //起大运时间,阳男阴女顺排
+        nearBy = Math.floor(info.jq[1])
         span = info.jq[1] - info.jd; //往后数一个节,计算时间跨度
-        for (i = 1; i <= 12; i++) { //大运干支
+        for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + i) % 12);
         }
     } else { // 阴男阳女逆排,往前数一个节
+        nearBy = Math.ceil(info.jq[0])
         span = info.jd - info.jq[0];
-        for (i = 1; i <= 12; i++) { //确保是正数
+        for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + 20 - i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + 24 - i) % 12);
         }
@@ -803,7 +806,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
-    span = Math.floor(info.jd) - Math.floor(info.jq[0]) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
+    span = Math.abs(Math.floor(info.jd) - nearBy) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
     const startAge = parseInt((span / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] += startAge // 出生日期农历年平移到起运年
