@@ -844,18 +844,19 @@ function shirenSpan(birthtimeJD, nearbyJD, forward) {
  * @returns {*}
  */
 export function offsetLunar2solar(lunarDate) {
-    let shirenLuckyDay = lunar2solar(...lunarDate)
+    let ld = [...lunarDate]
+    let shirenLuckyDay = lunar2solar(...ld)
     if (shirenLuckyDay === false) { // 如果平移后的日期不存在
-        if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
-            lunarDate[3] = false
-            shirenLuckyDay = lunar2solar(...lunarDate)
+        if (ld[3] === true) { // 平移的日期为闰月，转为非闰月重试
+            ld[3] = false
+            shirenLuckyDay = lunar2solar(...ld)
             if (shirenLuckyDay === false) { // 平移后的日期不存在(平移后，大月(30)变小月(29))
-                lunarDate[2] -= 1
-                shirenLuckyDay = lunar2solar(...lunarDate)
+                ld[2] -= 1
+                shirenLuckyDay = lunar2solar(...ld)
             }
         } else { // 平移日期不存在，大小月问题
-            lunarDate[2] -= 1
-            shirenLuckyDay = lunar2solar(...lunarDate)
+            ld[2] -= 1
+            shirenLuckyDay = lunar2solar(...ld)
         }
     }
     return shirenLuckyDay
