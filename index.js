@@ -892,11 +892,11 @@ export function gz2datetime(yearColumn, monthColumn, dayColumn, hourColumn, zzs 
 
         if (theHour === 0) {
             if (zzs) { // 早
-                id = theDayJd + (theHour * 2 - 12) / 24
-                fd = theDayJd + (theHour * 2 - 11) / 24
+                id = theDayJd - 12 / 24
+                fd = theDayJd - 11 / 24
             } else { // 晚
-                id = theDayJd + (theHour * 2 + 10) / 24
-                fd = theDayJd + (theHour * 2 + 12) / 24 - 0.00000001
+                id = theDayJd + 11 / 24
+                fd = theDayJd + 12 / 24 - 0.00000001
             }
         } else {
             id = theDayJd + (theHour * 2 - 13) / 24
