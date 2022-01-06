@@ -646,11 +646,12 @@ export function yearJieQi(year) {
     const jds = pureJQSinceSpring(year)
     const dates = []
     for (let i = 1; i < 14; i++) {
-        dates.push([...julian2solar(jds[i]), jds[i]])
+        dates.push([...julian2solar(jds[i]), jds[i], jds[i + 1]])
     }
     return dates.map((d, i, all) => {
         return {
-            jd: d[6],
+            jd: d[6], // 这个月的开始时间
+            nextjd: d[7], // 这个月的结束时间
             year: d[0],
             month: d[1],
             day: d[2],
