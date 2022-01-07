@@ -828,14 +828,17 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
  * 实仁计算span
  * @param birthtimeJD 出生时间儒略日
  * @param nearbyJD 靠近的节气儒略日
- * @param forward 顺排还是逆排
+ * @param forward 顺排还是逆排 无效参数
  * @returns {number}
  */
 function shirenSpan(birthtimeJD, nearbyJD, forward) {
-    const diff = julian2solar(birthtimeJD).slice(0, 3).join(".") === julian2solar(nearbyJD).slice(0, 3).join(".") ? 0 : 1;
+    // 去掉时分秒 TODO 优化掉中间变量
+    const birthday =julian2solar(birthtimeJD).slice(0, 3)
+    const nearbyDay = julian2solar(nearbyJD).slice(0, 3)
+    birthtimeJD = solar2julian(...birthday)
+    nearbyJD = solar2julian(...nearbyDay)
 
-    // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天(出生这天和节气不是同一天的时候，才额外加)
-    return Math.abs(Math.floor(birthtimeJD) - (forward ? Math.floor(nearbyJD) : Math.ceil(nearbyJD))) + diff
+    return Math.abs(birthtimeJD - nearbyJD)
 }
 
 /**
