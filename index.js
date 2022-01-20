@@ -646,10 +646,12 @@ export function yearJieQi(year) {
     const jds = pureJQSinceSpring(year)
     const dates = []
     for (let i = 1; i < 14; i++) {
-        dates.push(julian2solar(jds[i]))
+        dates.push([...julian2solar(jds[i]), jds[i], jds[i + 1]])
     }
     return dates.map((d, i, all) => {
         return {
+            jd: d[6], // 这个月的开始时间
+            nextjd: d[7], // 这个月的结束时间
             year: d[0],
             month: d[1],
             day: d[2],
@@ -776,16 +778,16 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
     }
 
     const pn = plate.basic.g[0] % 2;
-    let nearBy;
+    let srSpan;
     if ((male && pn === 0) || (!male && pn === 1)) { //起大运时间,阳男阴女顺排
-        nearBy = Math.floor(info.jq[1])
+        srSpan = shirenSpan(info.jd, info.jq[1], true)
         span = info.jq[1] - info.jd; //往后数一个节,计算时间跨度
         for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + i) % 10);
             plate.lucky.z.push((plate.basic.z[1] + i) % 12);
         }
     } else { // 阴男阳女逆排,往前数一个节
-        nearBy = Math.ceil(info.jq[0])
+        srSpan = shirenSpan(info.jd, info.jq[0], false)
         span = info.jd - info.jq[0];
         for (i = 1; i <= 12; i++) {
             plate.lucky.g.push((plate.basic.g[1] + 20 - i) % 10);
@@ -806,8 +808,7 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 
     // 公历A转为农历B，农历B年份加上起运年龄，月、天不变，则新的农历B1日期时间则为起运日期，如果B1对应的公历A1不存在，则进行闰月和减一天的操作，让A1存在
     // 计算实仁起运时间
-    span = Math.abs(Math.floor(info.jd) - nearBy) + 1 // 儒略日格式化为整数(即从当天12时计算),从生日到节气的间隔+节气那天
-    const startAge = parseInt((span / 3).toFixed())
+    const startAge = parseInt((srSpan / 3).toFixed())
     const lunarDate = solar2lunar(year, month, day)
     lunarDate[0] += startAge // 出生日期农历年平移到起运年
 
@@ -824,23 +825,41 @@ export const plate = function (male, year, month, day, hour, minute = 0, second 
 }
 
 /**
+ * 实仁计算span
+ * @param birthtimeJD 出生时间儒略日
+ * @param nearbyJD 靠近的节气儒略日
+ * @param forward 顺排还是逆排 无效参数
+ * @returns {number}
+ */
+function shirenSpan(birthtimeJD, nearbyJD, forward) {
+    // 去掉时分秒 TODO 优化掉中间变量
+    const birthday =julian2solar(birthtimeJD).slice(0, 3)
+    const nearbyDay = julian2solar(nearbyJD).slice(0, 3)
+    birthtimeJD = solar2julian(...birthday)
+    nearbyJD = solar2julian(...nearbyDay)
+
+    return Math.abs(birthtimeJD - nearbyJD)
+}
+
+/**
  * 偏移农历到公历
  * @param lunarDate
  * @returns {*}
  */
 export function offsetLunar2solar(lunarDate) {
-    let shirenLuckyDay = lunar2solar(...lunarDate)
+    let ld = [...lunarDate]
+    let shirenLuckyDay = lunar2solar(...ld)
     if (shirenLuckyDay === false) { // 如果平移后的日期不存在
-        if (lunarDate[3] === true) { // 平移的日期为闰月，转为非闰月重试
-            lunarDate[3] = false
-            shirenLuckyDay = lunar2solar(...lunarDate)
+        if (ld[3] === true) { // 平移的日期为闰月，转为非闰月重试
+            ld[3] = false
+            shirenLuckyDay = lunar2solar(...ld)
             if (shirenLuckyDay === false) { // 平移后的日期不存在(平移后，大月(30)变小月(29))
-                lunarDate[2] -= 1
-                shirenLuckyDay = lunar2solar(...lunarDate)
+                ld[2] -= 1
+                shirenLuckyDay = lunar2solar(...ld)
             }
         } else { // 平移日期不存在，大小月问题
-            lunarDate[2] -= 1
-            shirenLuckyDay = lunar2solar(...lunarDate)
+            ld[2] -= 1
+            shirenLuckyDay = lunar2solar(...ld)
         }
     }
     return shirenLuckyDay
@@ -877,11 +896,11 @@ export function gz2datetime(yearColumn, monthColumn, dayColumn, hourColumn, zzs 
 
         if (theHour === 0) {
             if (zzs) { // 早
-                id = theDayJd + (theHour * 2 - 12) / 24
-                fd = theDayJd + (theHour * 2 - 11) / 24
+                id = theDayJd - 12 / 24
+                fd = theDayJd - 11 / 24
             } else { // 晚
-                id = theDayJd + (theHour * 2 + 10) / 24
-                fd = theDayJd + (theHour * 2 + 12) / 24 - 0.00000001
+                id = theDayJd + 11 / 24
+                fd = theDayJd + 12 / 24 - 0.00000001
             }
         } else {
             id = theDayJd + (theHour * 2 - 13) / 24
