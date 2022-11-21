@@ -478,7 +478,7 @@ export function ZQAndSMandLunarMonthCode(year) {
     const jd4sm = SMSinceWinterSolstice(year, jd4zq[0]);
     let yz = 0;
     if (Math.floor(jd4zq[12] + 0.5) >= Math.floor(jd4sm[13] + 0.5)) {
-        for (i = 1; i <= 14; i++) {
+        for (i = 0; i <= 14; i++) {
             if (Math.floor((jd4sm[i] + 0.5) > Math.floor(jd4zq[i - 1 - yz] + 0.5) && Math.floor(jd4sm[i + 1] + 0.5) <= Math.floor(jd4zq[i - yz] + 0.5))) {
                 mc[i] = i - 0.5;
                 yz = 1;
@@ -499,6 +499,7 @@ export function ZQAndSMandLunarMonthCode(year) {
             }
         }
     }
+    console.log(mc)
     return [jd4zq, jd4sm, mc];
 }
 
@@ -525,10 +526,13 @@ export function solar2lunar(year, month, day) {
             break;
         }
     }
-
+    console.log(mc[mi])
+    console.log(mc[mi] < 2)
+    console.log(prev === 1)
     if (mc[mi] < 2 || prev === 1) {
         year = year - 1;
     }
+    console.log(mc, mi)
     month = (Math.floor(mc[mi] + 10) % 12) + 1;
     day = Math.floor(jd) - Math.floor(jd4sm[mi] + 0.5) + 1;
 
